@@ -1,4 +1,3 @@
-
 const LocalSubmissions = {
   "1f86e0a7-0736-4f45-85d7-b0e4cdf5f969": {
     "attempts": [
@@ -286,219 +285,83 @@ function computeStats(data) {
   };
 }
 
-/***********************
- * Styles
- ***********************/
-const styles = {
-  page: {
-    minHeight: "120vh",
-    background: "linear-gradient(135deg, #020617, #0f172a)",
-    padding: "40px",
-    fontFamily: "Inter, Arial, sans-serif",
-    color: "#e5e7eb"
-  },
 
-  title: { fontSize: "32px", marginBottom: "24px" },
-
-  sectionTitle: { marginTop: "32px", marginBottom: "16px" },
-
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    gap: "20px"
-  },
-
-  card: {
-    background: "#020617",
-    borderRadius: "14px",
-    padding: "20px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.4)"
-  },
-
-  label: { fontSize: "14px", color: "#94a3b8" },
-
-  value: { fontSize: "26px", fontWeight: "bold", marginTop: "6px" },
-
-  green: { color: "#22c55e" },
-  red: { color: "#ef4444" },
-  yellow: { color: "#eab308" },
-
-  /************************
-   * View Stats Transition
-   ************************/
-  landing: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "linear-gradient(135deg, #020617, #0f172a)",
-    overflow: "hidden"
-  },
-
-  button: {
-    padding: "18px 36px",
-    fontSize: "20px",
-    borderRadius: "14px",
-    border: "none",
-    cursor: "pointer",
-    background: "linear-gradient(135deg, #22c55e, #16a34a)",
-    color: "#020617",
-    fontWeight: "bold",
-    transition: "transform 0.8s ease, opacity 0.8s ease"
-  },
-
-  buttonHidden: {
-    transform: "translateY(-120px)",
-    opacity: 0
-  },
-
-  statsWrapper: {
-    transition: "opacity 0.8s ease, transform 0.8s ease",
-    opacity: 0,
-    transform: "translateY(40px)"
-  },
-
-  statsVisible: {
-    opacity: 1,
-    transform: "translateY(0)"
-  }
-};
-
-
-/***********************
- * UI helpers
- ***********************/
-function StatCard(label, value, color = {}) {
+function StatCard(label, value, colorClass = "") {
   return React.createElement(
     "div",
-    { style: styles.card },
-    React.createElement("div", { style: styles.label }, label),
-    React.createElement("div", { style: { ...styles.value, ...color } }, value)
+    { className: "card" },
+    React.createElement("div", { className: "label" }, label),
+    React.createElement(
+      "div",
+      { className: `value ${colorClass}` },
+      value
+    )
   );
 }
+
 function HomePage({ onViewStats }) {
   return React.createElement(
     "div",
-    {
-      style: {
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "linear-gradient(135deg, #020617, #0f172a)",
-        fontFamily: "Inter, Arial, sans-serif"
-      }
-    },
+    { className: "home" },
     React.createElement(
       "button",
       {
-        onClick: onViewStats,
-        style: {
-          padding: "18px 36px",
-          fontSize: "20px",
-          borderRadius: "14px",
-          border: "none",
-          cursor: "pointer",
-          background: "linear-gradient(135deg, #22c55e, #16a34a)",
-          color: "#020617",
-          fontWeight: "bold"
-          
-        }
+        className: "button",
+        onClick: onViewStats
       },
       "View Statistics"
     )
   );
 }
 
-
-/***********************
- * React component
- ***********************/
 function StatsPage() {
-  const [showStats, setShowStats] = React.useState(false);
   const s = computeStats(LocalSubmissions);
 
   return React.createElement(
     "div",
-    null,
+    { className: "page" },
 
-    /* Landing screen */
-    !showStats &&
-      React.createElement(
-        "div",
-        { style: styles.landing },
-        React.createElement(
-          "button",
-          {
-            style: {
-              ...styles.button,
-              ...(showStats ? styles.buttonHidden : {})
-            },
-            onClick: () => setShowStats(true)
-          },
-          "View Statistics"
-        )
-      ),
+    React.createElement("h1", { className: "title" }, "Local Submission Analytics"),
 
-    /* Stats screen */
+    React.createElement("h2", { className: "section-title" }, "Overview"),
     React.createElement(
       "div",
-      {
-        style: {
-          ...styles.page,
-          ...styles.statsWrapper,
-          ...(showStats ? styles.statsVisible : {})
-        }
-      },
+      { className: "grid" },
+      StatCard("Total Questions", s.totalQuestions),
+      StatCard("Total Attempts", s.totalAttempts),
+      StatCard("Accuracy", s.accuracy + "%", "green"),
+      StatCard("Avg Attempts / Question", Math.round(Number(s.avgAttempts)))
+    ),
 
-      React.createElement("h1", { style: styles.title }, "Local Submission Analytics"),
+    React.createElement("h2", { className: "section-title" }, "Learning Behavior"),
+    React.createElement(
+      "div",
+      { className: "grid" },
+      StatCard("First-Try Accuracy", s.firstTryAccuracy + "%", "yellow"),
+      StatCard("Eventually Correct", s.eventuallyCorrect),
+      StatCard("Never Solved", s.abandoned, "red"),
+      StatCard("Max Attempts on One Question", s.maxAttempts)
+    ),
 
-      /* Overview */
-      React.createElement("h2", { style: styles.sectionTitle }, "Overview"),
-      React.createElement(
-        "div",
-        { style: styles.grid },
-        StatCard("Total Questions", s.totalQuestions),
-        StatCard("Total Attempts", s.totalAttempts),
-        StatCard("Accuracy", s.accuracy + "%", styles.green),
-        StatCard("Avg Attempts / Question", s.avgAttempts)
-      ),
+    React.createElement("h2", { className: "section-title" }, "Attempts Distribution"),
+    React.createElement(
+      "div",
+      { className: "grid" },
+      Object.entries(s.attemptsDistribution).map(([k, v]) =>
+        StatCard(`${k} Attempt(s)`, v)
+      )
+    ),
 
-      /* Learning Behavior */
-      React.createElement("h2", { style: styles.sectionTitle }, "Learning Behavior"),
-      React.createElement(
-        "div",
-        { style: styles.grid },
-        StatCard("First-Try Accuracy", s.firstTryAccuracy + "%", styles.yellow),
-        StatCard("Eventually Correct", s.eventuallyCorrect),
-        StatCard("Never Solved", s.abandoned, styles.red),
-        StatCard("Max Attempts on One Question", s.maxAttempts)
-      ),
-
-      /* Attempts Distribution */
-      React.createElement("h2", { style: styles.sectionTitle }, "Attempts Distribution"),
-      React.createElement(
-        "div",
-        { style: styles.grid },
-        Object.entries(s.attemptsDistribution).map(([k, v]) =>
-          StatCard(`${k} Attempt(s)`, v)
-        )
-      ),
-
-      /* Answer Distribution */
-      React.createElement("h2", { style: styles.sectionTitle }, "Answer Choice Distribution"),
-      React.createElement(
-        "div",
-        { style: styles.grid },
-        Object.entries(s.answers).map(([k, v]) =>
-          StatCard(`Option ${k}`, v)
-        )
+    React.createElement("h2", { className: "section-title" }, "Answer Choice Distribution"),
+    React.createElement(
+      "div",
+      { className: "grid" },
+      Object.entries(s.answers).map(([k, v]) =>
+        StatCard(`Option ${k}`, v)
       )
     )
   );
 }
-
-
 
 function App() {
   const [view, setView] = React.useState("home");
@@ -507,15 +370,9 @@ function App() {
     ? React.createElement(HomePage, {
         onViewStats: () => setView("stats")
       })
-    : React.createElement(StatsPage, {
-        onBack: () => setView("home")
-      });
+    : React.createElement(StatsPage);
 }
 
-
-/***********************
- * Mount
- ***********************/
 ReactDOM
   .createRoot(document.getElementById("root"))
   .render(React.createElement(App));
